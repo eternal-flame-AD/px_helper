@@ -1,4 +1,4 @@
-# px_helper
+# px_helper [![Build Status](https://travis-ci.org/eternal-flame-AD/px_helper.svg?branch=master)](https://travis-ci.org/eternal-flame-AD/px_helper) [![Coverage Status](https://coveralls.io/repos/github/eternal-flame-AD/px_helper/badge.svg?branch=master)](https://coveralls.io/github/eternal-flame-AD/px_helper?branch=master)
 
 ## Usage
 usage: main.py [-h] [-u USERNAME] [-p PASSWORD] [-s SESS_ID] url
