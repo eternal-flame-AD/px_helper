@@ -1,6 +1,7 @@
 import bs4
 import time
 import threading
+import re
 import downloader
 from pxelem import PixlvUrl, PixlvImage, PixlvAuthors
 import queue
@@ -167,8 +168,31 @@ class PixlvParser():
     def img_from_bookmark_list(self):
         return self.img_from_member_illust()
 
+    def img_from_search_no_p(self):
+        return self.img_from_member_illust_no_p()
+
+    def img_from_search(self):
+        res = PixlvParserResult()
+        search_data = self.content.find(
+            "input", id="js-mount-point-search-result-list")['data-items']
+        search_result = eval(
+            eval("u'" + search_data + "'").replace("\/", "/").replace(
+                ":true", ":True").replace(":false", ":False")) # evaluate unicode string & replace true/false for True/False
+        for work in search_result:
+            res.add_url(
+                "https://www.pixiv.net/member_illust.php?mode=medium&illust_id="
+                + work['illustId'])
+        p = int(self.url.getquerydict()['p'][0])
+        res.add_url(
+            self.url.geturl().replace("p=" + str(p), "p=" + str(p + 1)),
+            base=self.url.geturl())
+        return res
+
     def parse(self):
         loc = self.url.geturi()
+        if not imgfilter.filter_url(self.url):
+            # filter url
+            return PixlvParserResult()
         if loc.startswith("/member_illust.php"):
             query = self.url.getquerydict()
             mode = query['mode'][0] if "mode" in query else None
@@ -189,6 +213,12 @@ class PixlvParser():
                 return self.img_from_bookmark_list()
             else:
                 return self.img_from_bookmark_list_no_p()
+        elif loc.startswith("/search.php"):
+            query = self.url.getquerydict()
+            if "p" in query:
+                return self.img_from_search()
+            else:
+                return self.img_from_search_no_p()
         else:
             raise NotImplementedError
 

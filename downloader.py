@@ -54,6 +54,7 @@ class DownloadWorker():
 
     def download(self, uri, fn, ref=""):
         self.is_busy = True
+        fn=fn.replace("?","？").replace(".","。").replace("/","") # prevent OSError
         get_ready_to_write(fn[:fn.rindex("/")])
         self.conn.request("GET", uri, headers={"Referer": ref})
         with open(fn, "wb") as f:
