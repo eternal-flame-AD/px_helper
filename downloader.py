@@ -11,6 +11,8 @@ prefix = config.download_prefix
 def get_ready_to_write(path):
     os.makedirs(path, exist_ok=True)
 
+def sanitize_name(fn):
+    return fn.replace("?","？").replace("..","").replace("/","")
 
 def download_html(host, uri, sessid=None):
     conn = httpconn.HTTPSConnection(host)
@@ -35,12 +37,12 @@ class DownloadDispatcher():
             time.sleep(1)
 
     def dispatch(self, img):
-        fn = prefix + img.info['author_nick'] + "/"
+        fn = prefix + sanitize_name(img.info['author_nick']) + "/"
         if img.info['work_type'] == "manga":
-            fn += img.info['work_title'] + "/"
+            fn += sanitize_name(img.info['work_title']) + "/"
             fn += str(img.info['manga_seq']) + ".jpg"
         elif img.info['work_type'] == "illust":
-            fn += img.info['work_title'] + ".jpg"
+            fn += sanitize_name(img.info['work_title']) + ".jpg"
         threading.Thread(
             target=self.get_worker().download,
             args=(img.url.replace("https://i.pximg.net", ""), fn,
@@ -54,7 +56,6 @@ class DownloadWorker():
 
     def download(self, uri, fn, ref=""):
         self.is_busy = True
-        fn=fn.replace("?","？").replace("..","").replace("/","") # prevent OSError
         get_ready_to_write(fn[:fn.rindex("/")])
         self.conn.request("GET", uri, headers={"Referer": ref})
         with open(fn, "wb") as f:

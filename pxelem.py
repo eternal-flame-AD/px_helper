@@ -10,17 +10,14 @@ class PixlvAuthors():
     def query(self, id):
         if id in author_cache:
             return author_cache[id]
-        url = PixlvUrl("https://www.pixiv.net/member.php?id=" + id)
+        url = PixlvUrl("https://www.pixiv.net/member.php?lang=en&id=" + id)
         content = url.toBs4()
         res = {}
-        res['author_nick'] = content.find(
-            "table", class_="profile").find(
-                "td", text="Nickname").parent.find(
-                    "td", class_="td2").get_text()
         detail_info = {}
         for row in content.find("table", class_="profile").find_all("tr"):
             detail_info[row.find("td", class_="td1").get_text()] = row.find(
                 "td", class_="td2").get_text()
+        res['author_nick'] = detail_info['Nickname']
         res['author_info'] = detail_info
         author_cache[id] = res
         return res
