@@ -1,4 +1,5 @@
 import threading
+import queue
 import time
 import random
 import os
@@ -11,8 +12,10 @@ prefix = config.download_prefix
 def get_ready_to_write(path):
     os.makedirs(path, exist_ok=True)
 
+
 def sanitize_name(fn):
-    return fn.replace("?","？").replace("..","").replace("/","")
+    return fn.replace("?", "？").replace("..", "").replace("/", "")
+
 
 def download_html(host, uri, sessid=None):
     conn = httpconn.HTTPSConnection(host)
@@ -23,18 +26,24 @@ def download_html(host, uri, sessid=None):
     return conn.getresponse().read()
 
 
+class DownloadTask():
+    def __init__(self, uri, fn, ref=""):
+        self.uri = uri
+        self.fn = fn
+        self.ref = ref
+
+
 class DownloadDispatcher():
     def __init__(self, count, host):
+        self.taskqueue = queue.Queue()
         self.worker = []
         for _ in range(count):
-            self.worker.append(DownloadWorker(host))
-
-    def get_worker(self):
-        while True:
-            for worker in self.worker:
-                if not worker.is_busy:
-                    return worker
-            time.sleep(1)
+            wkr = DownloadWorker(host)
+            wkr_thread = threading.Thread(
+                target=wkr.monitor, args=(self.taskqueue))
+            wkr_thread.daemon = True
+            wkr_thread.start()
+            self.worker.append((wkr, wkr_thread))
 
     def dispatch(self, img):
         fn = prefix + sanitize_name(img.info['author_nick']) + "/"
@@ -43,16 +52,24 @@ class DownloadDispatcher():
             fn += str(img.info['manga_seq']) + ".jpg"
         elif img.info['work_type'] == "illust":
             fn += sanitize_name(img.info['work_title']) + ".jpg"
-        threading.Thread(
-            target=self.get_worker().download,
-            args=(img.url.replace("https://i.pximg.net", ""), fn,
-                  img.info['referer'])).start()
+        task = DownloadTask(
+            img.url.replace("https://i.pximg.net", ""), fn,
+            img.info['referer'])
+        self.taskqueue.put(task)
 
 
 class DownloadWorker():
     def __init__(self, host):
         self.conn = httpconn.HTTPSConnection(host)
         self.is_busy = False
+
+    def monitor(self, queue):
+        while True:
+            task = queue.get()
+            try:
+                self.download(task.uri, task.fn, task.ref)
+            except httpconn.HTTPException:
+                self.download(task.uri, task.fn, task.ref)  # retry once
 
     def download(self, uri, fn, ref=""):
         self.is_busy = True

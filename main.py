@@ -12,7 +12,8 @@ import imgfilter
 import config
 from login import login
 
-url_queue=queue.Queue()
+url_queue = queue.Queue()
+
 
 class PixlvParserResult():
     def __init__(self):
@@ -23,7 +24,7 @@ class PixlvParserResult():
         self.imgs.append(PixlvImage(img, info=info))
 
     def add_url(self, url, base=None, info={}):
-        newurl=PixlvUrl(url, base=base, info=info)
+        newurl = PixlvUrl(url, base=base, info=info)
         self.urls.append(newurl)
         url_queue.put(newurl)
 
@@ -176,7 +177,8 @@ class PixlvParser():
             "input", id="js-mount-point-search-result-list")['data-items']
         search_result = eval(
             eval("u'" + search_data + "'").replace("\/", "/").replace(
-                ":true", ":True").replace(":false", ":False")) # evaluate unicode string & replace true/false for True/False
+                ":true", ":True").replace(":false", ":False")
+        )  # evaluate unicode string & replace true/false for True/False
         for work in search_result:
             res.add_url(
                 "https://www.pixiv.net/member_illust.php?mode=medium&illust_id="
