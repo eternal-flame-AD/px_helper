@@ -5,9 +5,11 @@ import downloader
 from pxelem import PixlvUrl, PixlvImage, PixlvAuthors
 import queue
 import sys
+import argparse
 import codecs
 import imgfilter
 import config
+from login import login
 
 
 class PixlvParserResult():
@@ -99,6 +101,14 @@ class PixlvParser():
             res['author_id'] = content.find(
                 "div", attrs={"data-click-label": "follow"})['data-user-id']
             res['tags'] = find_tag(content)
+            res['view-count'] = content.find(
+                "dd", class_="view-count").get_text()
+            res['rated-count'] = content.find(
+                "dd", class_="rated-count").get_text()
+            if content.find(class_="bookmarked"):
+                res['bookmarked'] = True
+            else:
+                res['bookmarked'] = False
             res['referer'] = self.url.geturl()
             res = {**res, **PixlvAuthors().query(res['author_id'])}
             return res
@@ -126,7 +136,10 @@ class PixlvParser():
 
     def img_from_member_illust_no_p(self):
         res = PixlvParserResult()
-        res.add_url(self.url.geturl() + "&p=1", base=self.url.geturl())
+        res.add_url(
+            self.url.geturl() +
+            ("?" if not self.url.getquerydict() else "&") + "p=1",
+            base=self.url.geturl())
         return res
 
     def img_from_member_illust(self):
@@ -142,6 +155,12 @@ class PixlvParser():
                 self.url.geturl().replace("p=" + str(p), "p=" + str(p + 1)),
                 base=self.url.geturl())
         return res
+
+    def img_from_bookmark_list_no_p(self):
+        return self.img_from_member_illust_no_p()
+
+    def img_from_bookmark_list(self):
+        return self.img_from_member_illust()
 
     def parse(self):
         loc = self.url.geturi()
@@ -159,6 +178,12 @@ class PixlvParser():
                     return self.img_from_member_illust_no_p()
             else:
                 raise ValueError
+        elif loc.startswith("/bookmark.php"):
+            query = self.url.getquerydict()
+            if "p" in query:
+                return self.img_from_bookmark_list()
+            else:
+                return self.img_from_bookmark_list_no_p()
         else:
             raise NotImplementedError
 
@@ -229,4 +254,22 @@ def parse_pixlv(url):
     PixlvMTMain(config.crawl_thread).start(url)
 
 
-parse_pixlv(sys.argv[1])
+def main():
+    parser = argparse.ArgumentParser(description="Pixlv downloader")
+    parser.add_argument(
+        "url",
+        type=str,
+        help="Pixlv URL, either bookmark, member_illust or illust")
+    parser.add_argument("-u", dest="username", help="username", type=str)
+    parser.add_argument("-p", dest="password", help="password", type=str)
+    parser.add_argument("-s", dest="sess_id", help="sessid", type=str)
+    args = parser.parse_args()
+    if args.sess_id:
+        config.sess_id = args.sess_id
+    elif (args.username) and (args.password):
+        config.sess_id = login(args.username, args.password)
+    parse_pixlv(args.url)
+
+
+if __name__ == "__main__":
+    main()

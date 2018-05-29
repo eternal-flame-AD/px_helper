@@ -1,6 +1,7 @@
 import urllib.parse as urlparser
 import downloader
 import bs4
+import config
 
 author_cache = {}
 
@@ -31,8 +32,9 @@ class PixlvImage():
 
 
 class PixlvUrl():
-    def __init__(self, url, base=None, info={}):
+    def __init__(self, url, base=None, info={}, use_sessid=True):
         self.info = info
+        self.use_sessid = use_sessid
         if base:
             self.url = urlparser.urlparse(urlparser.urljoin(base, url))
         else:
@@ -42,7 +44,10 @@ class PixlvUrl():
         self.info[key] = elem
 
     def toBs4(self):
-        content = downloader.download_html(self.gethost(), self.geturi())
+        content = downloader.download_html(
+            self.gethost(),
+            self.geturi(),
+            sessid=(config.sess_id if self.use_sessid else None))
         return bs4.BeautifulSoup(content, "html5lib")
 
     def gethost(self):

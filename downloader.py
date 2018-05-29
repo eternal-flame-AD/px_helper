@@ -12,9 +12,12 @@ def get_ready_to_write(path):
     os.makedirs(path, exist_ok=True)
 
 
-def download_html(host, uri):
+def download_html(host, uri, sessid=None):
     conn = httpconn.HTTPSConnection(host)
-    conn.request("GET", uri, headers={"cookie": "PHPSESSID=" + config.sess_id})
+    if not sessid:
+        conn.request("GET", uri)
+    else:
+        conn.request("GET", uri, headers={"cookie": "PHPSESSID=" + sessid})
     return conn.getresponse().read()
 
 
