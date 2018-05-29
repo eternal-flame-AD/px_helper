@@ -12,6 +12,7 @@ import imgfilter
 import config
 from login import login
 
+url_queue=queue.Queue()
 
 class PixlvParserResult():
     def __init__(self):
@@ -22,11 +23,9 @@ class PixlvParserResult():
         self.imgs.append(PixlvImage(img, info=info))
 
     def add_url(self, url, base=None, info={}):
-        self.urls.append(PixlvUrl(url, base=base, info=info))
-
-    def merge(self, res2):
-        self.urls = [*self.urls, *res2.urls]
-        self.imgs = [*self.imgs, *res2.urls]
+        newurl=PixlvUrl(url, base=base, info=info)
+        self.urls.append(newurl)
+        url_queue.put(newurl)
 
     def __str__(self):
         urls = []
@@ -243,8 +242,6 @@ class PixlvMTWorker():
                 newurl = urlqueue.get()
             res = PixlvParser(newurl).parse()
             getimgcallback(res.imgs)
-            for url in res.urls:
-                urlqueue.put(url)
 
 
 class PixlvMTMain():
@@ -253,7 +250,7 @@ class PixlvMTMain():
         self.infooutput = codecs.open(
             "output-info.txt", mode="w", encoding="utf-8")
         self.workers = []
-        self.urlqueue = queue.Queue()
+        self.urlqueue = url_queue
         self.writeLock = threading.Lock()
         self.downloader = downloader.DownloadDispatcher(
             config.down_thread, "i.pximg.net")
