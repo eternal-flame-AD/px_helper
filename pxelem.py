@@ -17,6 +17,11 @@ class PixlvAuthors():
             "table", class_="profile").find(
                 "td", text="Nickname").parent.find(
                     "td", class_="td2").get_text()
+        detail_info = {}
+        for row in content.find("table", class_="profile").find_all("tr"):
+            detail_info[row.find("td", class_="td1").get_text()] = row.find(
+                "td", class_="td2").get_text()
+        res['author_info'] = detail_info
         author_cache[id] = res
         return res
 

@@ -97,6 +97,11 @@ class PixlvParser():
                         "p", class_="caption").get_text()
             except AttributeError:
                 res['work_subtitle'] = ""
+            work_meta = content.find(
+                "section", class_="work-info").find(
+                    "ul", class_="meta").find_all("li")
+            res['work_time'] = work_meta[0].get_text()
+            res['work_resolution'] = work_meta[1].get_text()
             res['work_id'] = url.getquerydict()['illust_id'][0]
             res['author_id'] = content.find(
                 "div", attrs={"data-click-label": "follow"})['data-user-id']
@@ -268,6 +273,8 @@ def main():
         config.sess_id = args.sess_id
     elif (args.username) and (args.password):
         config.sess_id = login(args.username, args.password)
+    else:
+        raise ValueError("Provide credentials please")
     parse_pixlv(args.url)
 
 
