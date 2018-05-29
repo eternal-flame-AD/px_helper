@@ -62,9 +62,9 @@ class PixlvUrl():
         if self.url.port:
             return self.url.port
         else:
-            if self.getscheme == ("http"):
+            if self.getscheme() == "http":
                 return 80
-            elif self.getscheme == ("https"):
+            elif self.getscheme() == "https":
                 return 443
             else:
                 raise ValueError("Unknown port: " + self.url.geturl())
