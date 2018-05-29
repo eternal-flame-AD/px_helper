@@ -1,6 +1,7 @@
 import pytest
 import os
 import sys
+import time
 
 parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, parentdir)
@@ -10,11 +11,19 @@ import login
 import config
 import imgfilter
 
+@pytest.fixture(scope="function")
+def wait_clean():
+    time.sleep(3)
+
 
 @pytest.fixture(scope="function")
 def clean_download_dir():
     import shutil
     shutil.rmtree("down", ignore_errors=True)
+    try:
+        os.remove("output-info.txt")
+    except:
+        pass
 
 
 def get_output_info():

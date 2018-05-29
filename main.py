@@ -231,19 +231,27 @@ class PixlvMTWorker():
             group=None,
             args=(self, urlqueue, getimgcallback))
         self.worker.daemon = True
+        self.completed=False
         self.worker.start()
         self.idle = False
+        
 
     def work(self, urlqueue, getimgcallback):
         while True:
+            while True:
+                if self.completed:
+                    break
+                try:
+                    newurl = urlqueue.get(timeout=4)
+                    break
+                except:
+                    self.idle = True
+            if self.completed:
+                break
             self.idle = False
-            try:
-                newurl = urlqueue.get(timeout=8)
-            except:
-                self.idle = True
-                newurl = urlqueue.get()
             res = PixlvParser(newurl).parse()
             getimgcallback(res.imgs)
+        self.idle = True
 
 
 class PixlvMTMain():
@@ -262,7 +270,7 @@ class PixlvMTMain():
     def start(self, url):
         self.urlqueue.put(url)
         comp = False
-        while (not self.urlqueue.empty) or (not comp):
+        while (not self.urlqueue.empty()) or (not comp) or (self.downloader.check_busy()):
             comp = True
             for wkr in self.workers:
                 if not wkr.idle:
@@ -281,6 +289,10 @@ class PixlvMTMain():
         self.writeLock.release()
 
     def close(self):
+        for wkr in self.workers:
+            wkr.completed=True
+        for wkr in self.workers:
+            wkr.worker.join()
         self.infooutput.close()
 
 

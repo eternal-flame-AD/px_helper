@@ -40,10 +40,18 @@ class DownloadDispatcher():
         for _ in range(count):
             wkr = DownloadWorker(host)
             wkr_thread = threading.Thread(
-                target=wkr.monitor, args=(self.taskqueue))
+                target=wkr.monitor, args=(self.taskqueue,))
             wkr_thread.daemon = True
             wkr_thread.start()
             self.worker.append((wkr, wkr_thread))
+
+    def check_busy(self):
+        if not self.taskqueue.empty():
+            return True
+        for wkr in self.worker:
+            if wkr[0].is_busy:
+                return True
+        return False
 
     def dispatch(self, img):
         fn = prefix + sanitize_name(img.info['author_nick']) + "/"
@@ -65,14 +73,15 @@ class DownloadWorker():
 
     def monitor(self, queue):
         while True:
+            self.is_busy = False
             task = queue.get()
+            self.is_busy = True
             try:
                 self.download(task.uri, task.fn, task.ref)
             except httpconn.HTTPException:
                 self.download(task.uri, task.fn, task.ref)  # retry once
 
     def download(self, uri, fn, ref=""):
-        self.is_busy = True
         get_ready_to_write(fn[:fn.rindex("/")])
         self.conn.request("GET", uri, headers={"Referer": ref})
         with open(fn, "wb") as f:
@@ -80,4 +89,4 @@ class DownloadWorker():
             if resp.status != 200:
                 print("Req failed:" + str(resp.status) + " " + uri)
             f.write(resp.read())
-        self.is_busy = False
+        
