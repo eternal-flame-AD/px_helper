@@ -2,6 +2,7 @@ import urllib.parse as urlparser
 import downloader
 import bs4
 import config
+import re
 
 author_cache = {}
 
@@ -34,13 +35,15 @@ class PixlvImage():
 
 
 class PixlvUrl():
-    def __init__(self, url, base=None, info={}, use_sessid=True):
+    def __init__(self, url, base=None, info={}, use_sessid=True, use_english=True):
         self.info = info
         self.use_sessid = use_sessid
         if base:
             self.url = urlparser.urlparse(urlparser.urljoin(base, url))
         else:
             self.url = urlparser.urlparse(url)
+        if use_english:
+            self.addquerystring("lang", "en")
 
     def addinfo(self, key, elem):
         self.info[key] = elem
@@ -73,10 +76,23 @@ class PixlvUrl():
         return self.url.geturl()
 
     def geturi(self):
+        path=self.url.path
+        if path=="":
+            path="/"
         if self.url.query != "":
-            return self.url.path + "?" + self.url.query
+            return path + "?" + self.url.query
         else:
-            return self.url.path
+            return path
 
     def getquerydict(self):
         return urlparser.parse_qs(self.url.query)
+
+    def addquerystring(self, key, elem):
+        url = self.geturl()
+        if key in self.getquerydict():
+            url += "&"
+            orig_query_string = re.search(key + "=(.*?)&", url).group(0)
+            url = url.replace(orig_query_string, key + "=" + elem + "&")[:-1]
+        else:
+            url = url + ("?" if "?" not in url else "&") + key + "=" + elem
+        self.url = urlparser.urlparse(url)
