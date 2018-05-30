@@ -1,3 +1,3 @@
 download_prefix = "down/"
-crawl_thread = 5
-down_thread = 8
+crawl_thread = 7
+down_thread = 10
