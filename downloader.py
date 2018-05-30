@@ -18,7 +18,13 @@ def sanitize_name(fn):
 
 
 def download_html(host, uri, sessid=None):
-    conn = httpconn.HTTPSConnection(host)
+    if config.proxy == "http":
+        conn = httpconn.HTTPSConnection(config.proxy_host, config.proxy_port)
+        print(config.proxy_host, config.proxy_port)
+        print(host, uri, sessid)
+        conn.set_tunnel(host)
+    elif config.proxy == None:
+        conn = httpconn.HTTPSConnection(host)
     if not sessid:
         conn.request("GET", uri)
     else:
@@ -68,7 +74,12 @@ class DownloadDispatcher():
 
 class DownloadWorker():
     def __init__(self, host):
-        self.conn = httpconn.HTTPSConnection(host)
+        if config.proxy == "http":
+            self.conn = httpconn.HTTPSConnection(config.proxy_host,
+                                                 config.proxy_port)
+            self.conn.set_tunnel(host)
+        elif config.proxy == None:
+            self.conn = httpconn.HTTPSConnection(host)
         self.is_busy = False
 
     def monitor(self, queue):

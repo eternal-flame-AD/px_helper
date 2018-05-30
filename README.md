@@ -1,7 +1,7 @@
 # px_helper [![Build Status](https://travis-ci.org/eternal-flame-AD/px_helper.svg?branch=master)](https://travis-ci.org/eternal-flame-AD/px_helper) [![Coverage Status](https://coveralls.io/repos/github/eternal-flame-AD/px_helper/badge.svg?branch=master)](https://coveralls.io/github/eternal-flame-AD/px_helper?branch=master)
 
 ## Usage
-usage: main.py [-h] [-u USERNAME] [-p PASSWORD] [-s SESS_ID] url
+usage: main.py [-h] [-u USERNAME] [-p PASSWORD] [-s SESS_ID] [--proxy PROXY] url
 
 1. Use with username and password (This may cause your SESSID in your browser to be revoked):
   
@@ -12,7 +12,11 @@ usage: main.py [-h] [-u USERNAME] [-p PASSWORD] [-s SESS_ID] url
 2. Use with a valid PHPSESSID copied from your browser (31897178_xxxxxxxxxxxx):
   
   `python main.py -s SESS_ID url`
+
+3. To Use With a HTTP proxy, add the --proxy param:
   
+  `python main.py -s SESS_ID --proxy http://127.0.0.1:8080 url`
+
 ## Supported urls:
   - https://www.pixiv.net/bookmark.php (crawl all bookmarks)
   - https://www.pixiv.net/bookmark.php?p=x (start from this page)

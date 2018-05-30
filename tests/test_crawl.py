@@ -13,11 +13,6 @@ import imgfilter
 
 
 @pytest.fixture(scope="function")
-def wait_clean():
-    time.sleep(3)
-
-
-@pytest.fixture(scope="function")
 def clean_download_dir():
     import shutil
     shutil.rmtree("down", ignore_errors=True)
@@ -40,6 +35,7 @@ def get_output_info():
 class TestCrawl():
     @pytest.fixture(scope="class", autouse=True)
     def login(self):
+        config.proxy = None
         username = os.getenv("PX_USER")
         password = os.getenv("PX_PASS")
         config.sess_id = login.login(username, password)

@@ -309,7 +309,19 @@ def main():
     parser.add_argument("-u", dest="username", help="username", type=str)
     parser.add_argument("-p", dest="password", help="password", type=str)
     parser.add_argument("-s", dest="sess_id", help="sessid", type=str)
+    parser.add_argument("--proxy", dest="proxy", help="specify a http proxy (format: http://127.0.0.1:8080)")
     args = parser.parse_args()
+    if args.proxy:
+        proxy_url=PixlvUrl(args.proxy, use_sessid=False, use_english=False)
+        scheme=proxy_url.getscheme()
+        if scheme=="http":
+            config.proxy="http"
+            config.proxy_host=proxy_url.gethost()
+            config.proxy_port=proxy_url.getport()
+        else:
+            raise NotImplementedError("Unsupported proxy")
+    else:
+        config.proxy=None
     if args.sess_id:
         config.sess_id = args.sess_id
     elif (args.username) and (args.password):

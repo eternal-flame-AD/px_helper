@@ -4,10 +4,16 @@ from pxelem import PixlvUrl
 import re
 import bs4
 import json
+import config
 
 
 def login(username, password):
-    conn = httpconn.HTTPSConnection("accounts.pixiv.net")
+    host = "accounts.pixiv.net"
+    if config.proxy == "http":
+        conn = httpconn.HTTPSConnection(config.proxy_host, config.proxy_port)
+        conn.set_tunnel(host)
+    elif config.proxy == None:
+        conn = httpconn.HTTPSConnection(host)
     conn.request(
         "GET",
         "/login?lang=en&source=pc&view_type=page&ref=wwwtop_accounts_index")
@@ -30,7 +36,6 @@ def login(username, password):
         "return_to": "https://www.pixiv.net",
     })
 
-    conn = httpconn.HTTPSConnection("accounts.pixiv.net")
     conn.request(
         "POST",
         "/api/login?lang=en",
