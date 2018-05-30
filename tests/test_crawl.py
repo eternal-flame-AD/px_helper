@@ -11,6 +11,7 @@ import login
 import config
 import imgfilter
 
+
 @pytest.fixture(scope="function")
 def wait_clean():
     time.sleep(3)

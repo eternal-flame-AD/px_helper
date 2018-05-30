@@ -35,7 +35,12 @@ class PixlvImage():
 
 
 class PixlvUrl():
-    def __init__(self, url, base=None, info={}, use_sessid=True, use_english=True):
+    def __init__(self,
+                 url,
+                 base=None,
+                 info={},
+                 use_sessid=True,
+                 use_english=True):
         self.info = info
         self.use_sessid = use_sessid
         if base:
@@ -76,9 +81,9 @@ class PixlvUrl():
         return self.url.geturl()
 
     def geturi(self):
-        path=self.url.path
-        if path=="":
-            path="/"
+        path = self.url.path
+        if path == "":
+            path = "/"
         if self.url.query != "":
             return path + "?" + self.url.query
         else:

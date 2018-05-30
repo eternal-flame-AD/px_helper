@@ -40,7 +40,7 @@ class DownloadDispatcher():
         for _ in range(count):
             wkr = DownloadWorker(host)
             wkr_thread = threading.Thread(
-                target=wkr.monitor, args=(self.taskqueue,))
+                target=wkr.monitor, args=(self.taskqueue, ))
             wkr_thread.daemon = True
             wkr_thread.start()
             self.worker.append((wkr, wkr_thread))
@@ -89,4 +89,3 @@ class DownloadWorker():
             if resp.status != 200:
                 print("Req failed:" + str(resp.status) + " " + uri)
             f.write(resp.read())
-        
