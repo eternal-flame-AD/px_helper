@@ -1,0 +1,5 @@
+[run]
+include =
+    ./*.py
+omit =
+    tests/*.py

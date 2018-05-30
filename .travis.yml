@@ -5,6 +5,6 @@ python:
 install:
   - pip install -r requirements-test.txt
   - pip install -r requirements.txt
-script: py.test --cov ./
+script: py.test --cov
 after_success:
   - coveralls
