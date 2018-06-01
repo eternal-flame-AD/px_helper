@@ -28,10 +28,11 @@ usage: main.py [-h] [-u USERNAME] [-p PASSWORD] [-s SESS_ID] [--proxy PROXY] url
   - https://www.pixiv.net/search.php?word=xxx&order=xxx&p=x (start from this page)
 
 ## Custom filter:
-  you can edit the filter function in imgfilter.py to customize which image to download
-  example:
+  you can edit the filter function in imgfilter.py to customize which image to download:
   
-  <pre>def filter(img):
+  <pre># example img filter
+  def filter(img):
+      # only download manga work(multi pics)
       return img.info['work_type']=="manga"
   </pre>
   sample info data for https://www.pixiv.net/member_illust.php?mode=medium&illust_id=68768651:
