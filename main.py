@@ -49,7 +49,7 @@ class PixlvParser():
         def get_info(content):
             res = {}
             res['work_type'] = "manga"
-            res['work_title'] = content.find("title").get_text()
+            res['work_title'] = content.find("footer", class_="end-page").find("nav").find_all("li")[-1].get_text(strip=True)
             profile_module = content.find("footer").find(
                 "div", class_="profile-module").find("div")
             res['work_id'] = profile_module['data-illust-id']
