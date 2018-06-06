@@ -58,7 +58,7 @@ def login(username, password):
     res = conn.getresponse()
     result = json.loads(res.read())
     if result['error'] or ("success" not in result['body']):
-        print("login fail:") + str(result)
+        print("login fail:" + str(result))
         raise ValueError
     return re.search(r"(?<=PHPSESSID=)[\w_]*(?=;)",
                      res.getheader("set-cookie")).group(0)
