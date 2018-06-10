@@ -57,7 +57,7 @@ class PixlvParser():
                               self.content.prettify()).group(0).replace(
                                   r"\/", "/"),
                     info={
-                        **self.url.info, "manga_seq": seq
+                        **self.url.info, "manga_seq": seq + 1
                     })
         else:
             res = PixlvParserResult()
