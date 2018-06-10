@@ -41,3 +41,16 @@ usage: main.py [-h] [-u USERNAME] [-p PASSWORD] [-s SESS_ID] [--proxy PROXY] url
 </pre>
   
   You can also limit urls to crawl by modifying the filter_url function (see imgfilter.py for an example for limiting pages to crawl)
+
+## More about info output:
+  - "work_type": "manga" for multi-pic illusts, "illust" for single-page illust
+  - "work_imgcount": total count of images in this work
+  - "work_title": title of this work
+  - "work_subtitle": subtitle or comment of this work
+  - "work_resolution": $"{width}x{height}"
+  - "work_time": submission time of this work
+  - "manga_seq": Only in manga work. The sequence number of this image in the work, 'cover' for the cover image.
+  - "bookmarked": whether you have bookmarked this work
+  - "referer": referer needed to download this image
+  - "url": url of the image
+  
