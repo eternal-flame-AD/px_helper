@@ -28,13 +28,13 @@ def start_proxy():
     proxy_server.daemon = True
     proxy_server.start()
     time.sleep(3) # wait for proxy to start
-
+    config.proxy = "http"
+    config.proxy_host = "127.0.0.1"
+    config.proxy_port = 8080
 
 class TestCrawlProxy():
+    @pytest.fixture(scope="class", autouse=True)
     def login(self):
-        config.proxy = "http"
-        config.proxy_host = "127.0.0.1"
-        config.proxy_port = 8080
         username = os.getenv("PX_USER")
         password = os.getenv("PX_PASS")
         config.sess_id = login.login(username, password)
