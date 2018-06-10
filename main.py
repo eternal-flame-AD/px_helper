@@ -1,6 +1,7 @@
 import bs4
 import time
 import threading
+import json
 import re
 import downloader
 from pxelem import PixlvUrl, PixlvImage, PixlvAuthors
@@ -46,99 +47,78 @@ class PixlvParser():
         self.content = self.url.toBs4()
 
     def img_from_member_illust_manga(self):
-        def get_info(content):
-            res = {}
-            res['work_type'] = "manga"
-            res['work_title'] = content.find("footer", class_="end-page").find("nav").find_all("li")[-1].get_text(strip=True)
-            profile_module = content.find("footer").find(
-                "div", class_="profile-module").find("div")
-            res['work_id'] = profile_module['data-illust-id']
-            res['author_id'] = profile_module['data-user-id']
-            res['referer'] = self.url.geturl()
-            res = {**res, **PixlvAuthors().query(res['author_id'])}
-            return res
 
-        res = PixlvParserResult()
-        seq = 0
-        for img in self.content.find_all(
-                "img", attrs={"data-filter": "manga-image"}):
-            seq += 1
-            res.add_img(
-                img['data-src'],
-                info={
-                    **self.url.info,
-                    **get_info(self.content), "manga_seq": seq
-                })
+        if self.url.info:
+            res = PixlvParserResult()
+            for seq in range(self.url.info['work_imgcount']):
+                res.add_img(
+                    re.search(r'(?<=pixiv\.context\.images\[' +
+                              str(seq) + r'\]\s=\s")(.*?)(?=")',
+                              self.content.prettify()).group(0).replace(
+                                  r"\/", "/"),
+                    info={
+                        **self.url.info, "manga_seq": seq
+                    })
+        else:
+            res = PixlvParserResult()
+            res.add_url(self.url.geturl().replace("mode=manga", "mode=medium"))
         return res
 
     def img_from_member_illust_medium(self):
-        def get_info(content, url):
-            def find_tag(content):
-                res = []
-                tags = content.find_all(
-                    "a",
-                    attrs={
-                        "data-click-category":
-                        "illust-tag-on-member-illust-medium"
-                    })
-                if not tags:
-                    return []
-                for tag in tags:
-                    res.append(tag.get_text())
-                return res
-
+        def get_info(json_data):
             res = {}
-            res['work_type'] = "illust"
-            res['work_title'] = content.find(
-                "section", class_="work-info").find(
-                    "h1", class_="title").get_text()
-            try:
-                res['work_subtitle'] = content.find(
-                    "section", class_="work-info").find(
-                        "p", class_="caption").get_text()
-            except AttributeError:
-                res['work_subtitle'] = ""
-            work_meta = content.find(
-                "section", class_="work-info").find(
-                    "ul", class_="meta").find_all("li")
-            res['work_time'] = work_meta[0].get_text()
-            res['work_resolution'] = work_meta[1].get_text()
-            res['work_id'] = url.getquerydict()['illust_id'][0]
-            res['author_id'] = content.find(
-                "div", attrs={"data-click-label": "follow"})['data-user-id']
-            res['tags'] = find_tag(content)
-            res['view-count'] = content.find(
-                "dd", class_="view-count").get_text()
-            res['rated-count'] = content.find(
-                "dd", class_="rated-count").get_text()
-            if content.find(class_="bookmarked"):
-                res['bookmarked'] = True
+            if json_data['pageCount'] > 1:
+                res['work_type'] = "manga"
             else:
-                res['bookmarked'] = False
-            res['referer'] = self.url.geturl()
+                res['work_type'] = "illust"
+            res['work_imgcount'] = json_data['pageCount']
+            res['work_title'] = json_data['illustTitle']
+            res['work_subtitle'] = json_data['illustComment']
+            res['work_time'] = json_data['createDate']
+            res['work_id'] = json_data['illustId']
+            res['work_resolution'] = "x".join((str(json_data['width']),
+                                               str(json_data['height'])))
+            res['height'] = json_data['height']
+            res['width'] = json_data['width']
+            res['author_id'] = json_data['userId']
             res = {**res, **PixlvAuthors().query(res['author_id'])}
+            res['view-count'] = json_data['viewCount']
+            res['like-count'] = json_data['likeCount']
+            res['bookmark-count'] = json_data['bookmarkCount']
+            res['bookmarked'] = bool(json_data['bookmarkData'])
+            res['cover_url'] = json_data['urls']['original']
+            res['referer'] = self.url.geturl()
+
+            res['tags'] = []
+            for tag in json_data['tags']['tags']:
+                res['tags'].append(tag["tag"])
+
             return res
 
-        def one_pic_work(content, info={}):
+        def one_pic_work(info):
             res = PixlvParserResult()
-            res.add_img(
-                content.find("div",
-                             class_="_illust_modal").find("img")['data-src'],
+            res.add_img(info['cover_url'], info=info)
+            return res
+
+        def mult_pic_work(info):
+            res = PixlvParserResult()
+            res.add_img(info['cover_url'], info={**info, "manga_seq": "cover"})
+            res.add_url(
+                self.url.geturl().replace("mode=medium", "mode=manga"),
                 info=info)
             return res
 
-        def mult_pic_work(work, info={}):
-            nexturi = work.find("a", class_="_work")['href']
-            res = PixlvParserResult()
-            res.add_url(nexturi, base=self.url.geturl(), info=info)
-            return res
-
-        work = self.content.find(class_="works_display")
-        if work.find(class_="multiple"):
-            return mult_pic_work(work, info=get_info(self.content, self.url))
+        json_data = re.search(r"(?<=\()\{token:.*\}(?=\);)",
+                              self.content.prettify()).group(0)
+        json_data, _ = re.subn(r"(\{\s*|,\s*)(\w+):", r'\1"\2":', json_data)
+        json_data, _ = re.subn(r",\s*\}", r'}', json_data)
+        json_data = json.loads(json_data)['preload']['illust'][
+            self.url.getquerydict()['illust_id'][0]]
+        info = get_info(json_data)
+        if info['work_type'] == "manga":
+            return mult_pic_work(info)
         else:
-            return one_pic_work(
-                self.content, info=get_info(self.content, self.url))
+            return one_pic_work(info)
 
     def img_from_member_illust_no_p(self):
         res = PixlvParserResult()
@@ -309,19 +289,22 @@ def main():
     parser.add_argument("-u", dest="username", help="username", type=str)
     parser.add_argument("-p", dest="password", help="password", type=str)
     parser.add_argument("-s", dest="sess_id", help="sessid", type=str)
-    parser.add_argument("--proxy", dest="proxy", help="specify a http proxy (format: http://127.0.0.1:8080)")
+    parser.add_argument(
+        "--proxy",
+        dest="proxy",
+        help="specify a http proxy (format: http://127.0.0.1:8080)")
     args = parser.parse_args()
     if args.proxy:
-        proxy_url=PixlvUrl(args.proxy, use_sessid=False, use_english=False)
-        scheme=proxy_url.getscheme()
-        if scheme=="http":
-            config.proxy="http"
-            config.proxy_host=proxy_url.gethost()
-            config.proxy_port=proxy_url.getport()
+        proxy_url = PixlvUrl(args.proxy, use_sessid=False, use_english=False)
+        scheme = proxy_url.getscheme()
+        if scheme == "http":
+            config.proxy = "http"
+            config.proxy_host = proxy_url.gethost()
+            config.proxy_port = proxy_url.getport()
         else:
             raise NotImplementedError("Unsupported proxy")
     else:
-        config.proxy=None
+        config.proxy = None
     if args.sess_id:
         config.sess_id = args.sess_id
     elif (args.username) and (args.password):
