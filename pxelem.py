@@ -3,6 +3,7 @@ import downloader
 import bs4
 import config
 import re
+import json
 
 author_cache = {}
 
@@ -53,11 +54,19 @@ class PixlvUrl():
     def addinfo(self, key, elem):
         self.info[key] = elem
 
-    def toBs4(self):
+    def _download(self):
         content = downloader.download_html(
             self.gethost(),
             self.geturi(),
             sessid=(config.sess_id if self.use_sessid else None))
+        return content
+
+    def toJsonDict(self):
+        content = self._download()
+        return json.loads(content)
+
+    def toBs4(self):
+        content = self._download()
         return bs4.BeautifulSoup(content, "html5lib")
 
     def gethost(self):

@@ -26,6 +26,7 @@ usage: main.py [-h] [-u USERNAME] [-p PASSWORD] [-s SESS_ID] [--proxy PROXY] url
   - https://www.pixiv.net/member_illust.php?id=xxxxxx&p=x (start from this page)
   - https://www.pixiv.net/search.php?word=xxx&order=xxx (iter over pages)
   - https://www.pixiv.net/search.php?word=xxx&order=xxx&p=x (start from this page)
+  - https://www.pixiv.net/showcase/a/xxxx/
 
 ## Custom filter:
   you can edit the filter function in imgfilter.py to customize which image to download:

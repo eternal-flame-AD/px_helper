@@ -55,12 +55,13 @@ class DownloadDispatcher():
         self.taskqueue.join()
 
     def dispatch(self, img):
+        ext = img.url[img.url.rindex("."):]
         fn = prefix + sanitize_name(img.info['author_nick']) + "/"
         if img.info['work_type'] == "manga":
             fn += sanitize_name(img.info['work_title']) + "/"
-            fn += str(img.info['manga_seq']) + ".jpg"
+            fn += str(img.info['manga_seq']) + ext
         elif img.info['work_type'] == "illust":
-            fn += sanitize_name(img.info['work_title']) + ".jpg"
+            fn += sanitize_name(img.info['work_title']) + ext
         task = DownloadTask(
             img.url.replace("https://i.pximg.net", ""), fn,
             img.info['referer'])

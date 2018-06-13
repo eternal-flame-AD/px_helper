@@ -172,6 +172,18 @@ class PixlvParser():
             base=self.url.geturl())
         return res
 
+    def img_from_showcase_article(self):
+        article_id = re.search(r"/a/(\d+)/", self.url.geturi()).group(1)
+        article_api_uri = "https://www.pixiv.net/ajax/showcase/article?article_id={}".format(
+            article_id)
+        article_api_response = PixlvUrl(article_api_uri).toJsonDict()
+        result = PixlvParserResult()
+        for illust in article_api_response['body'][0]['illusts']:
+            result.add_url(
+                "https://www.pixiv.net/member_illust.php?mode=medium&illust_id="
+                + str(illust['illust_id']))
+        return result
+
     def parse(self):
         loc = self.url.geturi()
         if not imgfilter.filter_url(self.url):
@@ -203,6 +215,8 @@ class PixlvParser():
                 return self.img_from_search()
             else:
                 return self.img_from_search_no_p()
+        elif loc.startswith("/showcase/a"):
+            return self.img_from_showcase_article()
         else:
             raise NotImplementedError
 
