@@ -1,3 +1,6 @@
+import gevent.monkey
+gevent.monkey.patch_all()
+
 import bs4
 import time
 import threading
@@ -217,7 +220,7 @@ class PixlvMTWorker():
 
     def work(self, urlqueue, getimgcallback):
         while True:
-            
+
             while True:
                 if self.completed:
                     break
@@ -228,15 +231,15 @@ class PixlvMTWorker():
                     self.idle = True
             if self.completed:
                 break
-            
+
             self.idle = False
-            
+
             try:
                 res = PixlvParser(newurl).parse()
                 getimgcallback(res.imgs)
             finally:
                 url_queue.task_done()
-        
+
         self.idle = True
 
 

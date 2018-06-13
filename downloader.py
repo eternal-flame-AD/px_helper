@@ -1,7 +1,11 @@
-import threading
+import gevent.monkey
+
+gevent.monkey.patch_all()
+
 import queue
 import time
 import random
+import gevent.pool
 import os
 from http import client as httpconn
 import config
@@ -42,14 +46,10 @@ class DownloadTask():
 class DownloadDispatcher():
     def __init__(self, count, host):
         self.taskqueue = queue.Queue()
-        self.worker = []
+        self.pool = gevent.pool.Pool(count)
         for _ in range(count):
             wkr = DownloadWorker(host)
-            wkr_thread = threading.Thread(
-                target=wkr.monitor, args=(self.taskqueue, ))
-            wkr_thread.daemon = True
-            wkr_thread.start()
-            self.worker.append((wkr, wkr_thread))
+            self.pool.apply_async(wkr.monitor, args=(self.taskqueue, ))
 
     def join(self):
         self.taskqueue.join()
@@ -64,26 +64,41 @@ class DownloadDispatcher():
         task = DownloadTask(
             img.url.replace("https://i.pximg.net", ""), fn,
             img.info['referer'])
-        self.taskqueue.put(task)
+        self.taskqueue.put((task, config.down_retry_count))
 
 
 class DownloadWorker():
     def __init__(self, host):
+        self.host = host
+        self.reset_connnection()
+        self.is_busy = False
+
+    def reset_connnection(self):
         if config.proxy == "http":
             self.conn = httpconn.HTTPSConnection(config.proxy_host,
                                                  config.proxy_port)
-            self.conn.set_tunnel(host)
+            self.conn.set_tunnel(self.host)
         elif config.proxy == None:
-            self.conn = httpconn.HTTPSConnection(host)
-        self.is_busy = False
+            self.conn = httpconn.HTTPSConnection(self.host)
 
     def monitor(self, queue):
         while True:
             self.is_busy = False
-            task = queue.get()
+            task, retry_count = queue.get()
             self.is_busy = True
             try:
-                self.download(task.uri, task.fn, task.ref)
+                if retry_count == 0:
+                    print(
+                        "Failed to download", task.fn,
+                        ". Giving up. Maybe you should set a lower down_thread."
+                    )
+                else:
+                    self.download(task.uri, task.fn, task.ref)
+            except Exception as e:
+                print("Failed to download", task.fn, ". Remaining attempts:",
+                      retry_count)
+                self.reset_connnection()
+                queue.put((task, retry_count - 1))
             finally:
                 queue.task_done()
 
