@@ -8,11 +8,11 @@ import json
 author_cache = {}
 
 
-class PixlvAuthors():
+class PixivAuthors():
     def query(self, id):
         if id in author_cache:
             return author_cache[id]
-        url = PixlvUrl("https://www.pixiv.net/member.php?lang=en&id=" + id)
+        url = PixivUrl("https://www.pixiv.net/member.php?lang=en&id=" + id)
         content = url.toBs4()
         res = {}
         detail_info = {}
@@ -25,7 +25,7 @@ class PixlvAuthors():
         return res
 
 
-class PixlvImage():
+class PixivImage():
     def __init__(self, url, info={}):
         self.url = url
         info['url'] = url
@@ -35,7 +35,7 @@ class PixlvImage():
         return str(self.info)
 
 
-class PixlvUrl():
+class PixivUrl():
     def __init__(self,
                  url,
                  base=None,

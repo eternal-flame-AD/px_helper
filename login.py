@@ -1,6 +1,6 @@
 import http.client as httpconn
 import urllib.parse
-from pxelem import PixlvUrl
+from pxelem import PixivUrl
 import re
 import bs4
 import json

@@ -40,13 +40,13 @@ class TestCrawlProxy():
         config.sess_id = login.login(username, password)
 
     def test_crawl_one_pic_illust(self):
-        main.parse_pixlv(
+        main.parse_pixiv(
             "https://www.pixiv.net/member_illust.php?mode=medium&illust_id=59259626"
         )
         assert os.path.getsize("down/ツバサ/『　』.jpg") > 20000
 
     def test_crawl_mult_pic_illust(self):
-        main.parse_pixlv(
+        main.parse_pixiv(
             "https://www.pixiv.net/member_illust.php?mode=medium&illust_id=68686165"
         )
         assert os.path.getsize("down/村カルキ/色がケンカしない方法/1.jpg") > 20000

@@ -7,7 +7,7 @@ import threading
 import json
 import re
 import downloader
-from pxelem import PixlvUrl, PixlvImage, PixlvAuthors
+from pxelem import PixivUrl, PixivImage, PixivAuthors
 import queue
 import sys
 import argparse
@@ -19,16 +19,16 @@ from login import login
 url_queue = queue.Queue()
 
 
-class PixlvParserResult():
+class PixivParserResult():
     def __init__(self):
         self.urls = []
         self.imgs = []
 
     def add_img(self, img, info={}):
-        self.imgs.append(PixlvImage(img, info=info))
+        self.imgs.append(PixivImage(img, info=info))
 
     def add_url(self, url, base=None, info={}):
-        newurl = PixlvUrl(url, base=base, info=info)
+        newurl = PixivUrl(url, base=base, info=info)
         self.urls.append(newurl)
         url_queue.put(newurl)
 
@@ -42,17 +42,17 @@ class PixlvParserResult():
         return str(urls) + '\r\n' + str(imgs)
 
 
-class PixlvParser():
+class PixivParser():
     def __init__(self, url):
         if type(url) == str:
-            url = PixlvUrl(url)
+            url = PixivUrl(url)
         self.url = url
         self.content = self.url.toBs4()
 
     def img_from_member_illust_manga(self):
 
         if self.url.info:
-            res = PixlvParserResult()
+            res = PixivParserResult()
             for seq in range(self.url.info['work_imgcount']):
                 res.add_img(
                     re.search(r'(?<=pixiv\.context\.images\[' +
@@ -63,7 +63,7 @@ class PixlvParser():
                         **self.url.info, "manga_seq": seq + 1
                     })
         else:
-            res = PixlvParserResult()
+            res = PixivParserResult()
             res.add_url(self.url.geturl().replace("mode=manga", "mode=medium"))
         return res
 
@@ -84,7 +84,7 @@ class PixlvParser():
             res['height'] = json_data['height']
             res['width'] = json_data['width']
             res['author_id'] = json_data['userId']
-            res = {**res, **PixlvAuthors().query(res['author_id'])}
+            res = {**res, **PixivAuthors().query(res['author_id'])}
             res['view-count'] = json_data['viewCount']
             res['like-count'] = json_data['likeCount']
             res['bookmark-count'] = json_data['bookmarkCount']
@@ -99,12 +99,12 @@ class PixlvParser():
             return res
 
         def one_pic_work(info):
-            res = PixlvParserResult()
+            res = PixivParserResult()
             res.add_img(info['cover_url'], info=info)
             return res
 
         def mult_pic_work(info):
-            res = PixlvParserResult()
+            res = PixivParserResult()
             res.add_img(info['cover_url'], info={**info, "manga_seq": "cover"})
             res.add_url(
                 self.url.geturl().replace("mode=medium", "mode=manga"),
@@ -124,7 +124,7 @@ class PixlvParser():
             return one_pic_work(info)
 
     def img_from_member_illust_no_p(self):
-        res = PixlvParserResult()
+        res = PixivParserResult()
         res.add_url(
             self.url.geturl() +
             ("?" if not self.url.getquerydict() else "&") + "p=1",
@@ -132,7 +132,7 @@ class PixlvParser():
         return res
 
     def img_from_member_illust(self):
-        res = PixlvParserResult()
+        res = PixivParserResult()
         works = self.content.find_all("li", class_="image-item")
         if len(works) != 0:
             for work in works:
@@ -155,7 +155,7 @@ class PixlvParser():
         return self.img_from_member_illust_no_p()
 
     def img_from_search(self):
-        res = PixlvParserResult()
+        res = PixivParserResult()
         search_data = self.content.find(
             "input", id="js-mount-point-search-result-list")['data-items']
         search_result = eval(
@@ -176,8 +176,8 @@ class PixlvParser():
         article_id = re.search(r"/a/(\d+)/", self.url.geturi()).group(1)
         article_api_uri = "https://www.pixiv.net/ajax/showcase/article?article_id={}".format(
             article_id)
-        article_api_response = PixlvUrl(article_api_uri).toJsonDict()
-        result = PixlvParserResult()
+        article_api_response = PixivUrl(article_api_uri).toJsonDict()
+        result = PixivParserResult()
         for illust in article_api_response['body'][0]['illusts']:
             result.add_url(
                 "https://www.pixiv.net/member_illust.php?mode=medium&illust_id="
@@ -188,7 +188,7 @@ class PixlvParser():
         loc = self.url.geturi()
         if not imgfilter.filter_url(self.url):
             # filter url
-            return PixlvParserResult()
+            return PixivParserResult()
         if loc.startswith("/member_illust.php"):
             query = self.url.getquerydict()
             mode = query['mode'][0] if "mode" in query else None
@@ -221,10 +221,10 @@ class PixlvParser():
             raise NotImplementedError
 
 
-class PixlvMTWorker():
+class PixivMTWorker():
     def __init__(self, urlqueue, getimgcallback):
         self.worker = threading.Thread(
-            target=PixlvMTWorker.work,
+            target=PixivMTWorker.work,
             group=None,
             args=(self, urlqueue, getimgcallback))
         self.worker.daemon = True
@@ -249,7 +249,7 @@ class PixlvMTWorker():
             self.idle = False
 
             try:
-                res = PixlvParser(newurl).parse()
+                res = PixivParser(newurl).parse()
                 getimgcallback(res.imgs)
             finally:
                 url_queue.task_done()
@@ -257,7 +257,7 @@ class PixlvMTWorker():
         self.idle = True
 
 
-class PixlvMTMain():
+class PixivMTMain():
     def __init__(self, num):
         self.num = num
         self.infooutput = codecs.open(
@@ -268,7 +268,7 @@ class PixlvMTMain():
         self.downloader = downloader.DownloadDispatcher(
             config.down_thread, "i.pximg.net")
         for _ in range(num):
-            self.workers.append(PixlvMTWorker(self.urlqueue, self.getimg))
+            self.workers.append(PixivMTWorker(self.urlqueue, self.getimg))
 
     def start(self, url):
         self.urlqueue.put(url)
@@ -294,16 +294,16 @@ class PixlvMTMain():
         self.infooutput.close()
 
 
-def parse_pixlv(url):
-    PixlvMTMain(config.crawl_thread).start(url)
+def parse_pixiv(url):
+    PixivMTMain(config.crawl_thread).start(url)
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Pixlv downloader")
+    parser = argparse.ArgumentParser(description="Pixiv downloader")
     parser.add_argument(
         "url",
         type=str,
-        help="Pixlv URL, either bookmark, member_illust or illust")
+        help="Pixiv URL, either bookmark, member_illust or illust")
     parser.add_argument("-u", dest="username", help="username", type=str)
     parser.add_argument("-p", dest="password", help="password", type=str)
     parser.add_argument("-s", dest="sess_id", help="sessid", type=str)
@@ -313,7 +313,7 @@ def main():
         help="specify a http proxy (format: http://127.0.0.1:8080)")
     args = parser.parse_args()
     if args.proxy:
-        proxy_url = PixlvUrl(args.proxy, use_sessid=False, use_english=False)
+        proxy_url = PixivUrl(args.proxy, use_sessid=False, use_english=False)
         scheme = proxy_url.getscheme()
         if scheme == "http":
             config.proxy = "http"
@@ -329,7 +329,7 @@ def main():
         config.sess_id = login(args.username, args.password)
     else:
         raise ValueError("Provide credentials please")
-    parse_pixlv(args.url)
+    parse_pixiv(args.url)
 
 
 if __name__ == "__main__":

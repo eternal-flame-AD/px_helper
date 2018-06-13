@@ -41,20 +41,20 @@ class TestCrawl():
         config.sess_id = login.login(username, password)
 
     def test_crawl_one_pic_illust(self):
-        main.parse_pixlv(
+        main.parse_pixiv(
             "https://www.pixiv.net/member_illust.php?mode=medium&illust_id=59259626"
         )
         assert os.path.getsize("down/ツバサ/『　』.jpg") > 20000
 
     def test_crawl_mult_pic_illust(self):
-        main.parse_pixlv(
+        main.parse_pixiv(
             "https://www.pixiv.net/showcase/a/3517/"
         )
         assert os.path.getsize("down/アガハリ/徹はんと緒花はん/1.jpg") > 20000
         assert len(get_output_info()) > 5
 
     def test_crawl_showcase(self):
-        main.parse_pixlv(
+        main.parse_pixiv(
             "https://www.pixiv.net/member_illust.php?mode=medium&illust_id=68686165"
         )
         assert os.path.getsize("down/村カルキ/色がケンカしない方法/1.jpg") > 20000
@@ -71,7 +71,7 @@ class TestCrawl():
                 return True
 
         imgfilter.filter_url = filter_url
-        main.parse_pixlv(
+        main.parse_pixiv(
             "https://www.pixiv.net/member_illust.php?id=811927&type=all&p=5")
         assert len(get_output_info()) >= 20
 
@@ -85,6 +85,6 @@ class TestCrawl():
                 return True
 
         imgfilter.filter_url = filter_url
-        main.parse_pixlv(
+        main.parse_pixiv(
             "https://www.pixiv.net/search.php?word=test&order=date_d&p=5")
         assert len(get_output_info()) >= 20
