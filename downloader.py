@@ -51,13 +51,8 @@ class DownloadDispatcher():
             wkr_thread.start()
             self.worker.append((wkr, wkr_thread))
 
-    def check_busy(self):
-        if not self.taskqueue.empty():
-            return True
-        for wkr in self.worker:
-            if wkr[0].is_busy:
-                return True
-        return False
+    def join(self):
+        self.taskqueue.join()
 
     def dispatch(self, img):
         fn = prefix + sanitize_name(img.info['author_nick']) + "/"
@@ -89,8 +84,8 @@ class DownloadWorker():
             self.is_busy = True
             try:
                 self.download(task.uri, task.fn, task.ref)
-            except httpconn.HTTPException:
-                self.download(task.uri, task.fn, task.ref)  # retry once
+            finally:
+                queue.task_done()
 
     def download(self, uri, fn, ref=""):
         get_ready_to_write(fn[:fn.rindex("/")])
