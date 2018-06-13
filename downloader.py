@@ -3,6 +3,7 @@ import gevent.monkey
 gevent.monkey.patch_all()
 
 import queue
+import hashlib
 import time
 import random
 import gevent.pool
@@ -18,7 +19,9 @@ def get_ready_to_write(path):
 
 
 def sanitize_name(fn):
-    return fn.replace("?", "？").replace("..", "").replace("/", "")
+    return fn.replace("?", "？").replace("..", "").replace("/", "").replace(
+        "\\", "").replace("|", "").replace("*", "").replace(":", "：").replace(
+            '"', "“").replace("<", "").replace(">", "")
 
 
 def download_html(host, uri, sessid=None):
@@ -88,13 +91,23 @@ class DownloadWorker():
             task, retry_count = queue.get()
             self.is_busy = True
             try:
-                if retry_count == 0:
+                if os.path.exists(task.fn) and os.path.getsize(task.fn) > 1024:
+                    print("Skipped:", task.fn)
+                elif retry_count == 0:
                     print(
                         "Failed to download", task.fn,
                         ". Giving up. Maybe you should set a lower down_thread."
                     )
                 else:
+                    print("Download:", task.fn)
                     self.download(task.uri, task.fn, task.ref)
+            except OSError as e:
+                print("Failed to create file", task.fn,
+                      ". Remaining attempts:", retry_count)
+                m = hashlib.md5()
+                m.update(task.fn[task.fn.rindex("/") + 1:].encode("utf-8-sig"))
+                task.fn = task.fn[:task.fn.rindex("/") + 1] + m.hexdigest()
+                queue.put((task, retry_count - 1))
             except Exception as e:
                 print("Failed to download", task.fn, ". Remaining attempts:",
                       retry_count)
