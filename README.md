@@ -44,7 +44,7 @@ usage: main.py [-h] [-u USERNAME] [-p PASSWORD] [-s SESS_ID] [--proxy PROXY] url
   You can also limit urls to crawl by modifying the filter_url function (see imgfilter.py for an example for limiting pages to crawl)
 
 ## More about info output:
-  - "work_type": "manga" for multi-pic illusts, "illust" for single-page illust
+  - "work_type": "manga"/"illust"/"ugoira"
   - "work_imgcount": total count of images in this work
   - "work_title": title of this work
   - "work_subtitle": subtitle or comment of this work

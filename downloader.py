@@ -63,7 +63,7 @@ class DownloadDispatcher():
         if img.info['work_type'] == "manga":
             fn += sanitize_name(img.info['work_title']) + "/"
             fn += str(img.info['manga_seq']) + ext
-        elif img.info['work_type'] == "illust":
+        else:
             fn += sanitize_name(img.info['work_title']) + ext
         task = DownloadTask(
             img.url.replace("https://i.pximg.net", ""), fn,

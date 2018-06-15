@@ -70,10 +70,12 @@ class PixivParser():
     def img_from_member_illust_medium(self):
         def get_info(json_data):
             res = {}
-            if json_data['pageCount'] > 1:
-                res['work_type'] = "manga"
-            else:
+            if json_data['illustType'] == 0:
                 res['work_type'] = "illust"
+            elif json_data['illustType'] == 1:
+                res['work_type'] = "manga"
+            elif json_data['illustType'] == 2:
+                res['work_type'] = "ugoira"
             res['work_imgcount'] = json_data['pageCount']
             res['work_title'] = json_data['illustTitle']
             res['work_subtitle'] = json_data['illustComment']
@@ -98,17 +100,25 @@ class PixivParser():
 
             return res
 
-        def one_pic_work(info):
+        def illust_work(info):
             res = PixivParserResult()
             res.add_img(info['cover_url'], info=info)
             return res
 
-        def mult_pic_work(info):
+        def manga_work(info):
             res = PixivParserResult()
             res.add_img(info['cover_url'], info={**info, "manga_seq": "cover"})
             res.add_url(
                 self.url.geturl().replace("mode=medium", "mode=manga"),
                 info=info)
+            return res
+
+        def ugoira_work(info):
+            url = PixivUrl(
+                "https://www.pixiv.net/ajax/illust/{}/ugoira_meta".format(
+                    info['work_id']))
+            res = PixivParserResult()
+            res.add_img(url.toJsonDict()['body']['originalSrc'], info=info)
             return res
 
         json_data = re.search(r"(?<=\()\{token:.*\}(?=\);)",
@@ -119,9 +129,11 @@ class PixivParser():
             self.url.getquerydict()['illust_id'][0]]
         info = get_info(json_data)
         if info['work_type'] == "manga":
-            return mult_pic_work(info)
-        else:
-            return one_pic_work(info)
+            return manga_work(info)
+        elif info['work_type'] == "illust":
+            return illust_work(info)
+        elif info['work_type'] == "ugoira":
+            return ugoira_work(info)
 
     def img_from_member_illust_no_p(self):
         res = PixivParserResult()
