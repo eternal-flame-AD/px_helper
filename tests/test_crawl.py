@@ -46,10 +46,8 @@ class TestCrawl():
         )
         assert os.path.getsize("down/ツバサ/『　』.jpg") > 20000
 
-    def test_crawl_mult_pic_illust(self):
-        main.parse_pixiv(
-            "https://www.pixiv.net/showcase/a/3517/"
-        )
+    def test_crawl_showcase(self):
+        main.parse_pixiv("https://www.pixiv.net/showcase/a/3517/")
         assert os.path.getsize("down/アガハリ/徹はんと緒花はん/1.jpg") > 20000
         assert len(get_output_info()) > 5
 
@@ -59,7 +57,7 @@ class TestCrawl():
         )
         assert os.path.getsize("down/pixiv事務局/うごイラはじめました.zip") > 20000
 
-    def test_crawl_showcase(self):
+    def test_crawl_mult_pic_illust(self):
         main.parse_pixiv(
             "https://www.pixiv.net/member_illust.php?mode=medium&illust_id=68686165"
         )
