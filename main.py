@@ -70,11 +70,12 @@ class PixivParser():
     def img_from_member_illust_medium(self):
         def get_info(json_data):
             res = {}
-            if json_data['illustType'] == 0:
-                res['work_type'] = "illust"
-            elif json_data['illustType'] == 1:
-                res['work_type'] = "manga"
-            elif json_data['illustType'] == 2:
+            if json_data['illustType'] < 2:
+                if json_data['pageCount'] == 1:
+                    res['work_type'] = "illust"
+                else:
+                    res['work_type'] = "manga"
+            else:
                 res['work_type'] = "ugoira"
             res['work_imgcount'] = json_data['pageCount']
             res['work_title'] = json_data['illustTitle']
@@ -133,6 +134,7 @@ class PixivParser():
         elif info['work_type'] == "illust":
             return illust_work(info)
         elif info['work_type'] == "ugoira":
+            print(info)
             return ugoira_work(info)
 
     def img_from_member_illust_no_p(self):
