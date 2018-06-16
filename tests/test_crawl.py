@@ -56,7 +56,7 @@ class TestCrawl():
         main.parse_pixiv(
             "https://www.pixiv.net/member_illust.php?mode=medium&illust_id=44298467"
         )
-        assert os.path.getsize("down/pixiv事務局/うごイラはじめました.zip") > 20000
+        assert os.path.getsize("down/pixiv事務局/うごイラはじめました/うごイラはじめました.zip") > 20000
 
     def test_crawl_mult_pic_illust(self):
         main.parse_pixiv(
