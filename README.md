@@ -1,5 +1,8 @@
 # px_helper [![Build Status](https://travis-ci.org/eternal-flame-AD/px_helper.svg?branch=master)](https://travis-ci.org/eternal-flame-AD/px_helper) [![Coverage Status](https://coveralls.io/repos/github/eternal-flame-AD/px_helper/badge.svg?branch=master)](https://coveralls.io/github/eternal-flame-AD/px_helper?branch=master)
 
+
+2018-6-16 Ugoira现在会使用ffmpeg自动转为视频
+
 ## Usage
 usage: main.py [-h] [-u USERNAME] [-p PASSWORD] [-s SESS_ID] [--proxy PROXY] url
 
@@ -55,3 +58,5 @@ usage: main.py [-h] [-u USERNAME] [-p PASSWORD] [-s SESS_ID] [--proxy PROXY] url
   - "referer": referer needed to download this image
   - "url": url of the image
   
+## Notice
+This software uses <a href=http://ffmpeg.org>FFmpeg</a> licensed under the <a href=http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html>LGPLv2.1</a>.

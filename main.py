@@ -119,7 +119,8 @@ class PixivParser():
                 "https://www.pixiv.net/ajax/illust/{}/ugoira_meta".format(
                     info['work_id']))
             res = PixivParserResult()
-            res.add_img(url.toJsonDict()['body']['originalSrc'], info=info)
+            ugoira_def = url.toJsonDict()['body']
+            res.add_img(ugoira_def['originalSrc'], info={**info,"frames":ugoira_def['frames']})
             return res
 
         json_data = re.search(r"(?<=\()\{token:.*\}(?=\);)",
@@ -134,7 +135,6 @@ class PixivParser():
         elif info['work_type'] == "illust":
             return illust_work(info)
         elif info['work_type'] == "ugoira":
-            print(info)
             return ugoira_work(info)
 
     def img_from_member_illust_no_p(self):

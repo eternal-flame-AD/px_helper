@@ -3,3 +3,4 @@ include =
     ./*.py
 omit =
     tests/*.py
+    remuxer.py

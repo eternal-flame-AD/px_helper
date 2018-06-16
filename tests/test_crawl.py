@@ -52,6 +52,7 @@ class TestCrawl():
         assert len(get_output_info()) > 5
 
     def test_crawl_ugoira(self):
+        config.remux_ugoira = False
         main.parse_pixiv(
             "https://www.pixiv.net/member_illust.php?mode=medium&illust_id=44298467"
         )

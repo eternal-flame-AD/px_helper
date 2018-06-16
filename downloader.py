@@ -11,6 +11,8 @@ import os
 from http import client as httpconn
 import config
 
+import remuxer
+
 prefix = config.download_prefix
 
 
@@ -40,10 +42,11 @@ def download_html(host, uri, sessid=None):
 
 
 class DownloadTask():
-    def __init__(self, uri, fn, ref=""):
+    def __init__(self, uri, fn, ref="", finishcallback=None):
         self.uri = uri
         self.fn = fn
         self.ref = ref
+        self.finishcallback = finishcallback
 
 
 class DownloadDispatcher():
@@ -60,14 +63,22 @@ class DownloadDispatcher():
     def dispatch(self, img):
         ext = img.url[img.url.rindex("."):]
         fn = prefix + sanitize_name(img.info['author_nick']) + "/"
-        if img.info['work_type'] == "manga":
+        if img.info['work_type'] == "illust":
+            fn += sanitize_name(img.info['work_title']) + ext
+        elif img.info['work_type'] == "manga":
             fn += sanitize_name(img.info['work_title']) + "/"
             fn += str(img.info['manga_seq']) + ext
         else:
-            fn += sanitize_name(img.info['work_title']) + ext
+            fn += sanitize_name(img.info['work_title']) + "/" + sanitize_name(
+                img.info['work_title']) + ext
         task = DownloadTask(
-            img.url.replace("https://i.pximg.net", ""), fn,
-            img.info['referer'])
+            img.url.replace("https://i.pximg.net", ""),
+            fn,
+            img.info['referer'],
+            finishcallback=remuxer.UgoiraRemuxer(
+                fn, img.info['frames'], img.info['work_resolution']).remux
+            if (img.info['work_type'] == "ugoira" and config.remux_ugoira) else
+            None)
         self.taskqueue.put((task, config.down_retry_count))
 
 
@@ -101,9 +112,12 @@ class DownloadWorker():
                 else:
                     print("Download:", task.fn)
                     self.download(task.uri, task.fn, task.ref)
+                    if task.finishcallback:
+                        task.finishcallback()
             except OSError as e:
                 print("Failed to create file", task.fn,
                       ". Remaining attempts:", retry_count)
+                print(e)
                 m = hashlib.md5()
                 m.update(task.fn[task.fn.rindex("/") + 1:].encode("utf-8-sig"))
                 task.fn = task.fn[:task.fn.rindex("/") + 1] + m.hexdigest()
@@ -111,6 +125,7 @@ class DownloadWorker():
             except Exception as e:
                 print("Failed to download", task.fn, ". Remaining attempts:",
                       retry_count)
+                print(e)
                 self.reset_connnection()
                 queue.put((task, retry_count - 1))
             finally:
