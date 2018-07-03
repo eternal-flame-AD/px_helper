@@ -2,5 +2,5 @@
 include =
     ./*.py
 omit =
-    pxhelper/tests/*.py
+    tests/*.py
     pxhelper/remuxer.py
