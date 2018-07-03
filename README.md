@@ -9,6 +9,7 @@
  `cd ./px_helper && pip install ./`
 
 ## Usage
+<pre>
 usage: pxdown [-h] [-u USERNAME] [-p PASSWORD] [-s SESS_ID] [--proxy PROXY]
               [-o OUTPUT] [--max-page PAGE] [--newer-than NEW] [--remux REMUX]
               [--remux-ext REMUX_EXT]
@@ -33,7 +34,7 @@ optional arguments:
   --remux REMUX         Whether to remux ugoira with ffmpeg(y/n). Default: y
   --remux-ext REMUX_EXT Output format of remuxed ugoira. Example: --remux-ext
                         mp4
-
+</pre>
 1. Use with username and password (This may cause your SESSID in your browser to be revoked):
   
   **REMINDER: Make sure to backslash characters in password when necessary**
