@@ -3,11 +3,15 @@
 2018-6-16 Ugoira现在会使用ffmpeg自动转为视频
 
 ## Installation
+- Install from source
 
  `git clone https://github.com/eternal-flame-AD/px_helper.git`
 
- `cd ./px_helper && pip install ./`
+ `cd ./px_helper && pip3 install ./`
 
+- Install from PyPI
+
+ `pip3 install pxhelper`
 ## Usage
 <pre>
 usage: pxdown [-h] [-u USERNAME] [-p PASSWORD] [-s SESS_ID] [--proxy PROXY]
