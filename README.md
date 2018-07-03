@@ -1,24 +1,52 @@
 # px_helper [![Build Status](https://travis-ci.org/eternal-flame-AD/px_helper.svg?branch=master)](https://travis-ci.org/eternal-flame-AD/px_helper) [![Coverage Status](https://coveralls.io/repos/github/eternal-flame-AD/px_helper/badge.svg?branch=master)](https://coveralls.io/github/eternal-flame-AD/px_helper?branch=master)
 
-
 2018-6-16 Ugoira现在会使用ffmpeg自动转为视频
 
+## Installation
+
+ `git clone https://github.com/eternal-flame-AD/px_helper.git`
+
+ `cd ./px_helper && pip install ./`
+
 ## Usage
-usage: main.py [-h] [-u USERNAME] [-p PASSWORD] [-s SESS_ID] [--proxy PROXY] url
+usage: pxdown [-h] [-u USERNAME] [-p PASSWORD] [-s SESS_ID] [--proxy PROXY]
+              [-o OUTPUT] [--max-page PAGE] [--newer-than NEW] [--remux REMUX]
+              [--remux-ext REMUX_EXT]
+              url
+
+Pixiv downloader
+
+positional arguments:
+  url                   Pixiv URL, either bookmark, member_illust or illust
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -u USERNAME           username
+  -p PASSWORD           password
+  -s SESS_ID            sessid
+  --proxy PROXY         specify a http proxy (format: http://127.0.0.1:8080)
+  -o OUTPUT             output folder
+  --max-page PAGE       specify max page number (only useful when downloading
+                        illust_member or search page) Example: --max-page 10
+  --newer-than NEW      Only download works newer than the specified date.
+                        Format:YYYY-MM-DD Example: --newer-than 2018-07-03
+  --remux REMUX         Whether to remux ugoira with ffmpeg(y/n). Default: y
+  --remux-ext REMUX_EXT Output format of remuxed ugoira. Example: --remux-ext
+                        mp4
 
 1. Use with username and password (This may cause your SESSID in your browser to be revoked):
   
   **REMINDER: Make sure to backslash characters in password when necessary**
   
-  `python main.py -u USERNAME -p PASSWORD url`
+  `pxdown -u USERNAME -p PASSWORD url`
 
 2. Use with a valid PHPSESSID copied from your browser (31897178_xxxxxxxxxxxx):
   
-  `python main.py -s SESS_ID url`
+  `pxdown -s SESS_ID url`
 
 3. To Use With a HTTP proxy, add the --proxy param:
   
-  `python main.py -s SESS_ID --proxy http://127.0.0.1:8080 url`
+  `pxdown -s SESS_ID --proxy http://127.0.0.1:8080 url`
 
 ## Supported urls:
   - https://www.pixiv.net/bookmark.php (crawl all bookmarks)

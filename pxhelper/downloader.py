@@ -9,11 +9,10 @@ import random
 import gevent.pool
 import os
 from http import client as httpconn
-import config
 
-import remuxer
+from . import config
 
-prefix = config.download_prefix
+from . import remuxer
 
 
 def get_ready_to_write(path):
@@ -62,7 +61,8 @@ class DownloadDispatcher():
 
     def dispatch(self, img):
         ext = img.url[img.url.rindex("."):]
-        fn = prefix + sanitize_name(img.info['author_nick']) + "/"
+        fn = config.download_prefix + "/" + sanitize_name(
+            img.info['author_nick']) + "/"
         if img.info['work_type'] == "illust":
             fn += sanitize_name(img.info['work_title']) + ext
         elif img.info['work_type'] == "manga":

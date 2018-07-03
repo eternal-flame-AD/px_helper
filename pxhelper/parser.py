@@ -6,15 +6,16 @@ import time
 import threading
 import json
 import re
-import downloader
-from pxelem import PixivUrl, PixivImage, PixivAuthors
 import queue
 import sys
 import argparse
 import codecs
-import imgfilter
-import config
-from login import login
+
+from . import imgfilter
+from . import downloader
+from .pxelem import PixivUrl, PixivImage, PixivAuthors
+from . import config
+from .login import login
 
 url_queue = queue.Queue()
 
@@ -172,10 +173,7 @@ class PixivParser():
         res = PixivParserResult()
         search_data = self.content.find(
             "input", id="js-mount-point-search-result-list")['data-items']
-        search_result = eval(
-            eval("u'" + search_data + "'").replace("\/", "/").replace(
-                ":true", ":True").replace(":false", ":False")
-        )  # evaluate unicode string & replace true/false for True/False
+        search_result = json.loads(search_data)
         for work in search_result:
             res.add_url(
                 "https://www.pixiv.net/member_illust.php?mode=medium&illust_id="
@@ -275,7 +273,7 @@ class PixivMTMain():
     def __init__(self, num):
         self.num = num
         self.infooutput = codecs.open(
-            "output-info.txt", mode="w", encoding="utf-8")
+            "./output-info.txt", mode="w", encoding="utf-8")
         self.workers = []
         self.urlqueue = url_queue
         self.writeLock = threading.Lock()
@@ -310,41 +308,3 @@ class PixivMTMain():
 
 def parse_pixiv(url):
     PixivMTMain(config.crawl_thread).start(url)
-
-
-def main():
-    parser = argparse.ArgumentParser(description="Pixiv downloader")
-    parser.add_argument(
-        "url",
-        type=str,
-        help="Pixiv URL, either bookmark, member_illust or illust")
-    parser.add_argument("-u", dest="username", help="username", type=str)
-    parser.add_argument("-p", dest="password", help="password", type=str)
-    parser.add_argument("-s", dest="sess_id", help="sessid", type=str)
-    parser.add_argument(
-        "--proxy",
-        dest="proxy",
-        help="specify a http proxy (format: http://127.0.0.1:8080)")
-    args = parser.parse_args()
-    if args.proxy:
-        proxy_url = PixivUrl(args.proxy, use_sessid=False, use_english=False)
-        scheme = proxy_url.getscheme()
-        if scheme == "http":
-            config.proxy = "http"
-            config.proxy_host = proxy_url.gethost()
-            config.proxy_port = proxy_url.getport()
-        else:
-            raise NotImplementedError("Unsupported proxy")
-    else:
-        config.proxy = None
-    if args.sess_id:
-        config.sess_id = args.sess_id
-    elif (args.username) and (args.password):
-        config.sess_id = login(args.username, args.password)
-    else:
-        raise ValueError("Provide credentials please")
-    parse_pixiv(args.url)
-
-
-if __name__ == "__main__":
-    main()

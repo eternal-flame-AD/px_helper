@@ -4,7 +4,7 @@ import sys
 parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, parentdir)
 
-from pxelem import PixivUrl
+from pxhelper.pxelem import PixivUrl
 
 
 class TestUrlParse():

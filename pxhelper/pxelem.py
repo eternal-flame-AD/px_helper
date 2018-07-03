@@ -1,9 +1,10 @@
 import urllib.parse as urlparser
-import downloader
 import bs4
-import config
 import re
 import json
+
+from . import downloader
+from . import config
 
 author_cache = {}
 

@@ -1,10 +1,11 @@
 import http.client as httpconn
 import urllib.parse
-from pxelem import PixivUrl
 import re
 import bs4
 import json
-import config
+
+from . import config
+from .pxelem import PixivUrl
 
 
 def login(username, password):
