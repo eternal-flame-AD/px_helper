@@ -63,14 +63,14 @@ class DownloadDispatcher():
         ext = img.url[img.url.rindex("."):]
         fn = config.download_prefix + "/" + sanitize_name(
             img.info['author_nick']) + "/"
-        if img.info['work_type'] == "illust":
-            fn += sanitize_name(img.info['work_title']) + ext
-        elif img.info['work_type'] == "manga":
-            fn += sanitize_name(img.info['work_title']) + "/"
-            fn += str(img.info['manga_seq']) + ext
-        else:
+        if img.info['work_type'] == "ugoira":
             fn += sanitize_name(img.info['work_title']) + "/" + sanitize_name(
                 img.info['work_title']) + ext
+        elif img.info['work_imgcount'] == 1:
+            fn += sanitize_name(img.info['work_title']) + ext
+        else:
+            fn += sanitize_name(img.info['work_title']) + "/"
+            fn += str(img.info['image_seq']) + ext
         task = DownloadTask(
             img.url.replace("https://i.pximg.net", ""),
             fn,

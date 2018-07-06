@@ -61,7 +61,7 @@ class PixivParser():
                               self.content.prettify()).group(0).replace(
                                   r"\/", "/"),
                     info={
-                        **self.url.info, "manga_seq": seq + 1
+                        **self.url.info, "image_seq": seq + 1
                     })
         else:
             res = PixivParserResult()
@@ -71,13 +71,13 @@ class PixivParser():
     def img_from_member_illust_medium(self):
         def get_info(json_data):
             res = {}
-            if json_data['illustType'] < 2:
-                if json_data['pageCount'] == 1:
-                    res['work_type'] = "illust"
-                else:
-                    res['work_type'] = "manga"
-            else:
+            if json_data['illustType'] == 2:
                 res['work_type'] = "ugoira"
+            elif json_data['illustType'] == 0:
+                res['work_type'] = "illust"
+            else:
+                res['work_type'] = "manga"
+            
             res['work_imgcount'] = json_data['pageCount']
             res['work_title'] = json_data['illustTitle']
             res['work_subtitle'] = json_data['illustComment']
@@ -102,14 +102,14 @@ class PixivParser():
 
             return res
 
-        def illust_work(info):
+        def single_work(info):
             res = PixivParserResult()
             res.add_img(info['cover_url'], info=info)
             return res
 
-        def manga_work(info):
+        def multi_work(info):
             res = PixivParserResult()
-            res.add_img(info['cover_url'], info={**info, "manga_seq": "cover"})
+            res.add_img(info['cover_url'], info={**info, "image_seq": "cover"})
             res.add_url(
                 self.url.geturl().replace("mode=medium", "mode=manga"),
                 info=info)
@@ -131,12 +131,12 @@ class PixivParser():
         json_data = json.loads(json_data)['preload']['illust'][
             self.url.getquerydict()['illust_id'][0]]
         info = get_info(json_data)
-        if info['work_type'] == "manga":
-            return manga_work(info)
-        elif info['work_type'] == "illust":
-            return illust_work(info)
-        elif info['work_type'] == "ugoira":
+        if info['work_type'] == "ugoira":
             return ugoira_work(info)
+        elif info['work_imgcount'] > 1:
+            return multi_work(info)
+        else:
+            return single_work(info)
 
     def img_from_member_illust_no_p(self):
         res = PixivParserResult()

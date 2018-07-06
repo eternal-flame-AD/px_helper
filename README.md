@@ -1,5 +1,7 @@
 # px_helper [![Build Status](https://travis-ci.org/eternal-flame-AD/px_helper.svg?branch=master)](https://travis-ci.org/eternal-flame-AD/px_helper) [![Coverage Status](https://coveralls.io/repos/github/eternal-flame-AD/px_helper/badge.svg?branch=master)](https://coveralls.io/github/eternal-flame-AD/px_helper?branch=master)
 
+2018-7-6  修复了单张/多张 和 插画/漫画的逻辑错误
+
 2018-6-16 Ugoira现在会使用ffmpeg自动转为视频
 
 ## Installation
@@ -86,7 +88,7 @@ optional arguments:
   - "work_subtitle": subtitle or comment of this work
   - "work_resolution": $"{width}x{height}"
   - "work_time": submission time of this work
-  - "manga_seq": Only in manga work. The sequence number of this image in the work, 'cover' for the cover image.
+  - "image_seq": Only in multi-pic work. The sequence number of this image in the work, 'cover' for the cover image.
   - "bookmarked": whether you have bookmarked this work
   - "referer": referer needed to download this image
   - "url": url of the image
