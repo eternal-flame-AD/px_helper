@@ -8,6 +8,7 @@ import time
 import random
 import gevent.pool
 import os
+import sys
 from http import client as httpconn
 
 from . import config
@@ -20,9 +21,12 @@ def get_ready_to_write(path):
 
 
 def sanitize_name(fn):
-    return fn.replace("?", "？").replace("..", "").replace("/", "").replace(
-        "\\", "").replace("|", "").replace("*", "").replace(":", "：").replace(
-            '"', "“").replace("<", "").replace(">", "")
+    if sys.platform == "win32":
+        return fn.replace("?", "？").replace("..", "").replace("/", "").replace(
+            "\\", "").replace("|", "").replace("*", "").replace(":", "：").replace(
+                '"', "“").replace("<", "").replace(">", "")
+    else:
+        return fn.replace("/","")
 
 
 def download_html(host, uri, sessid=None):
